@@ -1,23 +1,24 @@
 use std::{collections::BTreeMap, fs::read_to_string};
 
-fn main() {
-    // part 1
-    // let sum = read_to_string("input.txt")
-    //     .unwrap()
-    //     .lines()
-    //     .fold(0, |acc, l| {
-    //         let digits: Vec<_> = l.chars().filter(|c| c.is_ascii_digit()).collect();
-    //         let first = *digits.first().unwrap() as usize - 48;
-    //         let last = *digits.last().unwrap() as usize - 48;
+fn part1() {
+    let sum = read_to_string("input_part1.txt")
+        .unwrap()
+        .lines()
+        .fold(0, |acc, l| {
+            let digits: Vec<_> = l.chars().filter(|c| c.is_ascii_digit()).collect();
+            let first = *digits.first().unwrap() as usize - 0x30;
+            let last = *digits.last().unwrap() as usize - 0x30;
 
-    //         acc + first * 10 + last
-    //     });
+            acc + first * 10 + last
+        });
+    println!("sum = {sum}");
+}
 
-    // part 2
+fn part2() {
     let digits_str = [
         "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
     ];
-    let sum = read_to_string("input.txt")
+    let sum = read_to_string("input_part2.txt")
         .unwrap()
         .lines()
         .fold(0, |acc, l| {
@@ -41,6 +42,10 @@ fn main() {
 
             acc + first * 10 + last
         });
-
     println!("sum = {sum}");
+}
+
+fn main() {
+    part1();
+    part2();
 }
