@@ -39,6 +39,29 @@ fn part2(input: &str) -> usize {
     })
 }
 
+fn part2_bigbrain(input: &str) -> usize {
+    input
+        .lines()
+        .map(|l| {
+            l.replace("one", "one1one")
+                .replace("two", "two2two")
+                .replace("three", "three3three")
+                .replace("four", "four4four")
+                .replace("five", "five5five")
+                .replace("six", "six6six")
+                .replace("seven", "seven7seven")
+                .replace("eight", "eight8eight")
+                .replace("nine", "nine9nine")
+        })
+        .fold(0, |acc, l| {
+            let digits: Vec<_> = l.chars().filter(|c| c.is_ascii_digit()).collect();
+            let first = *digits.first().unwrap() as usize - 0x30;
+            let last = *digits.last().unwrap() as usize - 0x30;
+
+            acc + first * 10 + last
+        })
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -51,7 +74,7 @@ mod test {
             a1b2c3d4e5f
             treb7uchet
         ";
-        assert_eq!(part1(input.trim()), 142)
+        assert_eq!(part1(input.trim()), 142);
     }
 
     #[test]
@@ -65,6 +88,7 @@ mod test {
             zoneight234
             7pqrstsixteen
         ";
-        assert_eq!(part2(input.trim()), 281)
+        assert_eq!(part2(input.trim()), 281);
+        assert_eq!(part2_bigbrain(input.trim()), 281);
     }
 }
