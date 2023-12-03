@@ -4,108 +4,90 @@ use std::collections::HashMap;
 
 fn part1(input: &str) -> usize {
     let schematics: Vec<Vec<char>> = input.lines().map(|l| l.trim().chars().collect()).collect();
-    let mut numbers = HashMap::new();
+    let mut parts = HashMap::new();
 
-    for i in 0..schematics.len() {
-        for j in 0..schematics[0].len() {
-            let c = schematics[i][j];
-            if (c != '.') & !c.is_ascii_digit() {
-                for i_off in -1..=1i32 {
-                    for j_off in -1..=1i32 {
-                        let x = if i_off.is_negative() {
-                            i.saturating_sub(i_off.unsigned_abs() as usize)
-                        } else {
-                            (i + i_off as usize).min(schematics.len() - 1)
-                        };
-                        let y = if j_off.is_negative() {
-                            j.saturating_sub(j_off.unsigned_abs() as usize)
-                        } else {
-                            (j + j_off as usize).min(schematics[0].len() - 1)
-                        };
+    for (i, line) in schematics.iter().enumerate() {
+        for (j, c) in line.iter().enumerate() {
+            if (*c != '.') & !c.is_ascii_digit() {
+                for i_off in 0..=2 {
+                    for j_off in 0..=2 {
+                        let x = (i + i_off).saturating_sub(1).min(schematics.len() - 1);
+                        let y = (j + j_off).saturating_sub(1).min(line.len() - 1);
                         let c = schematics[x][y];
                         if c.is_ascii_digit() {
                             let mut digits = String::new();
                             let mut start = y;
                             let mut end = y;
-                            for k in (0..y).rev() {
-                                if schematics[x][k].is_ascii_digit() {
+                            for c in schematics[x].iter().take(y).rev() {
+                                if c.is_ascii_digit() {
                                     start -= 1;
                                 } else {
                                     break;
                                 }
                             }
-                            for k in y..schematics[0].len() {
-                                if schematics[x][k].is_ascii_digit() {
+                            for c in schematics[x].iter().skip(y) {
+                                if c.is_ascii_digit() {
                                     end += 1;
                                 } else {
                                     break;
                                 }
                             }
-                            for k in start..end {
-                                digits.push(schematics[x][k])
+                            for c in schematics[x].iter().skip(start).take(end - start) {
+                                digits.push(*c)
                             }
                             let number: usize = digits.parse().unwrap();
-                            numbers.insert((start..end, x), number);
+                            parts.insert((start..end, x), number);
                         }
                     }
                 }
             }
         }
     }
-    numbers.values().sum()
+    parts.values().sum()
 }
 
 fn part2(input: &str) -> usize {
     let schematics: Vec<Vec<char>> = input.lines().map(|l| l.trim().chars().collect()).collect();
     let mut sum = 0;
 
-    for i in 0..schematics.len() {
-        for j in 0..schematics[0].len() {
-            let c = schematics[i][j];
-            if c == '*' {
-                let mut numbers = HashMap::new();
-                for i_off in -1..=1i32 {
-                    for j_off in -1..=1i32 {
-                        let x = if i_off.is_negative() {
-                            i.saturating_sub(i_off.unsigned_abs() as usize)
-                        } else {
-                            (i + i_off as usize).min(schematics.len() - 1)
-                        };
-                        let y = if j_off.is_negative() {
-                            j.saturating_sub(j_off.unsigned_abs() as usize)
-                        } else {
-                            (j + j_off as usize).min(schematics[0].len() - 1)
-                        };
+    for (i, line) in schematics.iter().enumerate() {
+        for (j, c) in line.iter().enumerate() {
+            if *c == '*' {
+                let mut gears = HashMap::new();
+                for i_off in 0..=2 {
+                    for j_off in 0..=2 {
+                        let x = (i + i_off).saturating_sub(1).min(schematics.len() - 1);
+                        let y = (j + j_off).saturating_sub(1).min(schematics[0].len() - 1);
                         let c = schematics[x][y];
                         if c.is_ascii_digit() {
                             let mut digits = String::new();
                             let mut start = y;
                             let mut end = y;
-                            for k in (0..y).rev() {
-                                if schematics[x][k].is_ascii_digit() {
+                            for c in schematics[x].iter().take(y).rev() {
+                                if c.is_ascii_digit() {
                                     start -= 1;
                                 } else {
                                     break;
                                 }
                             }
-                            for k in y..schematics[0].len() {
-                                if schematics[x][k].is_ascii_digit() {
+                            for c in schematics[x].iter().skip(y) {
+                                if c.is_ascii_digit() {
                                     end += 1;
                                 } else {
                                     break;
                                 }
                             }
-                            for k in start..end {
-                                digits.push(schematics[x][k])
+                            for c in schematics[x].iter().skip(start).take(end - start) {
+                                digits.push(*c)
                             }
                             let number: usize = digits.parse().unwrap();
-                            numbers.insert((start..end, x), number);
+                            gears.insert((start..end, x), number);
                         }
                     }
                 }
 
-                if numbers.len() == 2 {
-                    sum += numbers.values().product::<usize>();
+                if gears.len() == 2 {
+                    sum += gears.values().product::<usize>();
                 }
             }
         }
