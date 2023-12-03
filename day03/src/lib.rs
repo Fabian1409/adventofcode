@@ -2,6 +2,37 @@
 
 use std::collections::HashMap;
 
+struct Part {
+    number: usize,
+    start: usize,
+    end: usize,
+}
+
+fn parse_part(line: &[char], index: usize) -> Part {
+    let mut digits = String::new();
+    let mut start = index;
+    let mut end = index;
+    for c in line.iter().take(index).rev() {
+        if c.is_ascii_digit() {
+            start -= 1;
+        } else {
+            break;
+        }
+    }
+    for c in line.iter().skip(index) {
+        if c.is_ascii_digit() {
+            end += 1;
+        } else {
+            break;
+        }
+    }
+    for c in line.iter().skip(start).take(end - start) {
+        digits.push(*c)
+    }
+    let number = digits.parse().unwrap();
+    Part { number, start, end }
+}
+
 fn part1(input: &str) -> usize {
     let schematics: Vec<Vec<char>> = input.lines().map(|l| l.trim().chars().collect()).collect();
     let mut parts = HashMap::new();
@@ -15,28 +46,8 @@ fn part1(input: &str) -> usize {
                         let y = (j + j_off).saturating_sub(1).min(line.len() - 1);
                         let c = schematics[x][y];
                         if c.is_ascii_digit() {
-                            let mut digits = String::new();
-                            let mut start = y;
-                            let mut end = y;
-                            for c in schematics[x].iter().take(y).rev() {
-                                if c.is_ascii_digit() {
-                                    start -= 1;
-                                } else {
-                                    break;
-                                }
-                            }
-                            for c in schematics[x].iter().skip(y) {
-                                if c.is_ascii_digit() {
-                                    end += 1;
-                                } else {
-                                    break;
-                                }
-                            }
-                            for c in schematics[x].iter().skip(start).take(end - start) {
-                                digits.push(*c)
-                            }
-                            let number: usize = digits.parse().unwrap();
-                            parts.insert((start..end, x), number);
+                            let part = parse_part(&schematics[x], y);
+                            parts.insert((part.start..part.end, x), part.number);
                         }
                     }
                 }
@@ -60,28 +71,8 @@ fn part2(input: &str) -> usize {
                         let y = (j + j_off).saturating_sub(1).min(schematics[0].len() - 1);
                         let c = schematics[x][y];
                         if c.is_ascii_digit() {
-                            let mut digits = String::new();
-                            let mut start = y;
-                            let mut end = y;
-                            for c in schematics[x].iter().take(y).rev() {
-                                if c.is_ascii_digit() {
-                                    start -= 1;
-                                } else {
-                                    break;
-                                }
-                            }
-                            for c in schematics[x].iter().skip(y) {
-                                if c.is_ascii_digit() {
-                                    end += 1;
-                                } else {
-                                    break;
-                                }
-                            }
-                            for c in schematics[x].iter().skip(start).take(end - start) {
-                                digits.push(*c)
-                            }
-                            let number: usize = digits.parse().unwrap();
-                            gears.insert((start..end, x), number);
+                            let part = parse_part(&schematics[x], y);
+                            gears.insert((part.start..part.end, x), part.number);
                         }
                     }
                 }
