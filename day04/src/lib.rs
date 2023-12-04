@@ -60,12 +60,9 @@ fn part2(input: &str) -> usize {
         }
 
         let copies = card_copies.get(&i).cloned().unwrap_or(0);
-
-        if copies != 0 {
-            sum += copies;
-            for j in 0..n {
-                *card_copies.entry(i + j + 1).or_default() += copies;
-            }
+        sum += copies;
+        for j in 0..n {
+            *card_copies.entry(i + j + 1).or_default() += copies;
         }
     }
 
@@ -77,7 +74,6 @@ mod test {
     use super::*;
 
     #[test]
-    #[ignore]
     fn test_part1() {
         let input = "
             Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
