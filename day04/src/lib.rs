@@ -44,26 +44,23 @@ fn part1(input: &str) -> usize {
 
 fn part2(input: &str) -> usize {
     let mut card_copies: HashMap<usize, usize> = HashMap::new();
-    let mut sum = 0;
 
-    for (i, card) in input
+    input
         .lines()
         .map(|l| l.trim().parse::<Card>().unwrap())
         .enumerate()
-    {
-        let n = card.numbers.intersection(&card.winning).count();
-        for j in 0..n {
-            *card_copies.entry(i + j + 1).or_default() += 1;
-        }
+        .fold(0, |acc, (i, card)| {
+            let n = card.numbers.intersection(&card.winning).count();
+            for j in 0..n {
+                *card_copies.entry(i + j + 1).or_default() += 1;
+            }
 
-        let copies = card_copies.remove(&i).unwrap_or(0);
-        for j in 0..n {
-            *card_copies.entry(i + j + 1).or_default() += copies;
-        }
-        sum += copies + 1;
-    }
-
-    sum
+            let copies = card_copies.remove(&i).unwrap_or(0);
+            for j in 0..n {
+                *card_copies.entry(i + j + 1).or_default() += copies;
+            }
+            acc + copies + 1
+        })
 }
 
 #[cfg(test)]
