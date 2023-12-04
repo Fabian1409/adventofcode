@@ -35,11 +35,9 @@ fn part1(input: &str) -> usize {
         .lines()
         .map(|l| l.trim().parse::<Card>().unwrap())
         .fold(0, |acc, card| {
-            let intersection_len = card.numbers.intersection(&card.winning).count();
-            if intersection_len != 0 {
-                acc + 2usize.pow(intersection_len as u32 - 1)
-            } else {
-                acc
+            match card.numbers.intersection(&card.winning).count() {
+                0 => acc,
+                x => acc + (1 << (x - 1)),
             }
         })
 }
