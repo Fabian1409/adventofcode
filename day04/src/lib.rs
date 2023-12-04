@@ -51,17 +51,16 @@ fn part2(input: &str) -> usize {
         .map(|l| l.trim().parse::<Card>().unwrap())
         .enumerate()
     {
-        sum += 1;
         let n = card.numbers.intersection(&card.winning).count();
         for j in 0..n {
             *card_copies.entry(i + j + 1).or_default() += 1;
         }
 
-        let copies = card_copies.get(&i).cloned().unwrap_or(0);
-        sum += copies;
+        let copies = card_copies.remove(&i).unwrap_or(0);
         for j in 0..n {
             *card_copies.entry(i + j + 1).or_default() += copies;
         }
+        sum += copies + 1;
     }
 
     sum
