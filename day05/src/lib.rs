@@ -1,6 +1,11 @@
 #![allow(dead_code)]
 
-use std::{ops::Range, str::FromStr};
+use std::{
+    ops::Range,
+    str::FromStr,
+    sync::Arc,
+    thread::{self},
+};
 
 struct Almanac {
     seeds: Vec<u64>,
@@ -65,19 +70,27 @@ fn part1(input: &str) -> u64 {
 }
 
 fn part2(input: &str) -> u64 {
-    let almanac = input.parse::<Almanac>().unwrap();
+    let almanac = Arc::new(input.parse::<Almanac>().unwrap());
 
-    almanac
-        .seeds
-        .chunks(2)
-        .map(|chunk| {
-            (chunk[0]..chunk[0] + chunk[1])
-                .map(|seed| almanac.seed_to_location(seed))
-                .min()
-                .unwrap()
-        })
-        .min()
-        .unwrap()
+    thread::scope(|s| {
+        let mut threads = Vec::new();
+        almanac.seeds.chunks(2).for_each(|chunk| {
+            let thread_almanac = Arc::clone(&almanac);
+            let start = chunk[0];
+            let len = chunk[1];
+            threads.push(s.spawn(move || {
+                (start..start + len)
+                    .map(|seed| thread_almanac.seed_to_location(seed))
+                    .min()
+                    .unwrap()
+            }));
+        });
+        threads
+            .into_iter()
+            .map(|t| t.join().unwrap())
+            .min()
+            .unwrap()
+    })
 }
 
 #[cfg(test)]
@@ -160,7 +173,6 @@ mod test {
             humidity-to-location map:
             60 56 37
             56 93 4
-            
         ";
         assert_eq!(part2(input.trim()), 46);
     }
