@@ -1,9 +1,9 @@
 #![allow(dead_code)]
 
-use std::{collections::HashSet, ops::Range, str::FromStr};
+use std::{ops::Range, str::FromStr};
 
 struct Almanac {
-    seeds: HashSet<u64>,
+    seeds: Vec<u64>,
     mappings: Vec<Vec<(Range<u64>, Range<u64>)>>,
 }
 
@@ -12,7 +12,7 @@ impl FromStr for Almanac {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (seeds, rest) = s.split_once("\n\n").unwrap();
-        let seeds: HashSet<u64> = seeds
+        let seeds: Vec<u64> = seeds
             .strip_prefix("seeds: ")
             .unwrap()
             .split(' ')
@@ -65,7 +65,19 @@ fn part1(input: &str) -> u64 {
 }
 
 fn part2(input: &str) -> u64 {
-    todo!()
+    let almanac = input.parse::<Almanac>().unwrap();
+
+    almanac
+        .seeds
+        .chunks(2)
+        .map(|chunk| {
+            (chunk[0]..chunk[0] + chunk[1])
+                .map(|seed| almanac.seed_to_location(seed))
+                .min()
+                .unwrap()
+        })
+        .min()
+        .unwrap()
 }
 
 #[cfg(test)]
@@ -110,5 +122,46 @@ mod test {
             56 93 4
         ";
         assert_eq!(part1(input.trim()), 35);
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = "
+            seeds: 79 14 55 13
+
+            seed-to-soil map:
+            50 98 2
+            52 50 48
+
+            soil-to-fertilizer map:
+            0 15 37
+            37 52 2
+            39 0 15
+
+            fertilizer-to-water map:
+            49 53 8
+            0 11 42
+            42 0 7
+            57 7 4
+
+            water-to-light map:
+            88 18 7
+            18 25 70
+
+            light-to-temperature map:
+            45 77 23
+            81 45 19
+            68 64 13
+
+            temperature-to-humidity map:
+            0 69 1
+            1 0 69
+
+            humidity-to-location map:
+            60 56 37
+            56 93 4
+            
+        ";
+        assert_eq!(part2(input.trim()), 46);
     }
 }
