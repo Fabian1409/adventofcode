@@ -31,7 +31,7 @@ struct Game {
 }
 
 impl FromStr for Game {
-    type Err = Box<dyn Error>;
+    type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.trim();
