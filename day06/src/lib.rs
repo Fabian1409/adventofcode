@@ -26,29 +26,24 @@ impl<'a> AdventOfCodeDay<'a> for Day06Solver {
             .0
             .iter()
             .map(|race| {
-                (0..race.time)
-                    .map(|time| {
-                        let speed = time;
-                        let t_remaning = race.time - time;
-                        speed * t_remaning
-                    })
-                    .filter(|distance| *distance > race.record)
-                    .count()
+                let b = race.time as f32;
+                let c = -(race.record as f32);
+                let tmp = (b.powf(2f32) + 4f32 * c).sqrt();
+                let x0 = (b - tmp) * 0.5;
+                let x1 = (b + tmp) * 0.5;
+                ((x1.ceil() - 1f32) - x0.floor()) as usize
             })
-            .product::<usize>()
+            .product()
     }
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
         let race = &input.1;
-        let start = race.record / race.time;
-        (start..race.time - start)
-            .map(|time| {
-                let speed = time;
-                let t_remaning = race.time - time;
-                speed * t_remaning
-            })
-            .filter(|distance| *distance > race.record)
-            .count()
+        let b = race.time as f32;
+        let c = -(race.record as f32);
+        let tmp = (b.powf(2f32) + 4f32 * c).sqrt();
+        let x0 = (b - tmp) * 0.5;
+        let x1 = (b + tmp) * 0.5;
+        ((x1.ceil() - 1f32) - x0.floor()) as usize
     }
 
     fn parse_input(input: &'a str) -> Self::ParsedInput {
