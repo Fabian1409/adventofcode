@@ -2,12 +2,12 @@ use aoc_traits::AdventOfCodeDay;
 
 #[derive(Debug)]
 pub struct Race {
-    time: u64,
-    record: u64,
+    time: usize,
+    record: usize,
 }
 
 impl Race {
-    fn new(time: u64, record: u64) -> Self {
+    fn new(time: usize, record: usize) -> Self {
         Race { time, record }
     }
 }
@@ -40,8 +40,8 @@ impl<'a> AdventOfCodeDay<'a> for Day06Solver {
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
         let race = &input.1;
-        (0..race.time)
-            .rev()
+        let start = race.record / race.time;
+        (start..race.time - start)
             .map(|time| {
                 let speed = time;
                 let t_remaning = race.time - time;
