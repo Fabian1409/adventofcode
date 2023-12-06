@@ -1,6 +1,4 @@
-#![allow(dead_code)]
-
-use std::{collections::HashMap, error::Error, str::FromStr};
+use std::str::FromStr;
 
 use aoc_traits::AdventOfCodeDay;
 
@@ -14,20 +12,21 @@ enum Color {
     Green,
     Blue,
 }
+
 impl FromStr for Color {
-    type Err = Box<dyn Error>;
+    type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "red" => Ok(Color::Red),
             "green" => Ok(Color::Green),
             "blue" => Ok(Color::Blue),
-            _ => Err("invalid color".into()),
+            _ => Err(()),
         }
     }
 }
 
-struct Game {
+pub struct Game {
     id: usize,
     turns: Vec<Vec<(usize, Color)>>,
 }
@@ -63,61 +62,49 @@ impl Game {
         })
     }
 
-    fn fewest_cubes(&self) -> HashMap<Color, usize> {
-        let mut amounts = HashMap::new();
+    fn fewest_cubes_power(&self) -> usize {
+        let mut red = 0;
+        let mut green = 0;
+        let mut blue = 0;
 
         for turn in self.turns.iter() {
             for (num, color) in turn {
-                let entry = amounts.entry(color.clone()).or_insert(0);
-                if num > entry {
-                    *entry = *num;
+                match color {
+                    Color::Red => red = red.max(*num),
+                    Color::Green => green = green.max(*num),
+                    Color::Blue => blue = blue.max(*num),
                 }
             }
         }
-        amounts
+
+        red * green * blue
     }
-}
-
-fn part1(input: &str) -> usize {
-    input.lines().fold(0, |acc, l| {
-        let game: Game = l.parse().unwrap();
-
-        if game.valid() {
-            acc + game.id
-        } else {
-            acc
-        }
-    })
-}
-
-fn part2(input: &str) -> usize {
-    input.lines().fold(0, |acc, l| {
-        let game: Game = l.parse().unwrap();
-        let fewest_cubes = game.fewest_cubes();
-        let power: usize = fewest_cubes.values().product();
-        acc + power
-    })
 }
 
 pub struct Day02Solver;
 
 impl<'a> AdventOfCodeDay<'a> for Day02Solver {
-    type ParsedInput = &'a str;
+    type ParsedInput = Vec<Game>;
 
     type Part1Output = usize;
 
     type Part2Output = usize;
 
     fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
-        part1(input)
+        input.iter().fold(
+            0,
+            |acc, game| if game.valid() { acc + game.id } else { acc },
+        )
     }
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
-        part2(input)
+        input
+            .iter()
+            .fold(0, |acc, game| acc + game.fewest_cubes_power())
     }
 
     fn parse_input(input: &'a str) -> Self::ParsedInput {
-        input
+        input.lines().map(|l| l.parse().unwrap()).collect()
     }
 }
 
@@ -134,7 +121,10 @@ mod test {
             Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
             Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
         ";
-        assert_eq!(part1(input.trim()), 8);
+        assert_eq!(
+            Day02Solver::solve_part1(&Day02Solver::parse_input(input.trim())),
+            8
+        );
     }
 
     #[test]
@@ -146,6 +136,9 @@ mod test {
             Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
             Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
         ";
-        assert_eq!(part2(input.trim()), 2286);
+        assert_eq!(
+            Day02Solver::solve_part2(&Day02Solver::parse_input(input.trim())),
+            2286
+        );
     }
 }

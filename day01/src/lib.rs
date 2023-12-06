@@ -1,31 +1,4 @@
-#![allow(dead_code)]
-
-use std::str::Lines;
-
 use aoc_traits::AdventOfCodeDay;
-
-fn part2_bigbrain(input: &str) -> usize {
-    input
-        .lines()
-        .map(|l| {
-            l.replace("one", "one1one")
-                .replace("two", "two2two")
-                .replace("three", "three3three")
-                .replace("four", "four4four")
-                .replace("five", "five5five")
-                .replace("six", "six6six")
-                .replace("seven", "seven7seven")
-                .replace("eight", "eight8eight")
-                .replace("nine", "nine9nine")
-        })
-        .fold(0, |acc, l| {
-            let digits: Vec<_> = l.chars().filter(|c| c.is_ascii_digit()).collect();
-            let first = *digits.first().unwrap() as usize - 0x30;
-            let last = *digits.last().unwrap() as usize - 0x30;
-
-            acc + first * 10 + last
-        })
-}
 
 pub struct Day01Solver;
 
