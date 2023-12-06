@@ -47,11 +47,12 @@ impl<'a> AdventOfCodeDay<'a> for Day01Solver {
                 .map(|(i, (int, str))| {
                     (i, l.rfind(int).unwrap_or(0).max(l.rfind(str).unwrap_or(0)))
                 })
+                .rev()
                 .max_by_key(|(_, pos)| *pos)
                 .unwrap()
                 .0;
 
-            acc + first * 10 + last
+            acc + first * 10 + if last != 0 { last } else { first }
         })
     }
 
