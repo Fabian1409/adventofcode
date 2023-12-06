@@ -1,45 +1,8 @@
 #![allow(dead_code)]
 
-use std::collections::BTreeMap;
+use std::str::Lines;
 
 use aoc_traits::AdventOfCodeDay;
-
-fn part1(input: &str) -> usize {
-    input.lines().fold(0, |acc, l| {
-        let digits: Vec<_> = l.chars().filter(|c| c.is_ascii_digit()).collect();
-        let first = *digits.first().unwrap() as usize - 0x30;
-        let last = *digits.last().unwrap() as usize - 0x30;
-
-        acc + first * 10 + last
-    })
-}
-
-fn part2(input: &str) -> usize {
-    let digits_str = [
-        "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-    ];
-    input.lines().fold(0, |acc, l| {
-        let mut digit_pos = BTreeMap::new();
-        for (digit, digit_str) in digits_str.iter().enumerate() {
-            if let Some(pos) = l.find(digit.to_string().as_str()) {
-                digit_pos.insert(pos, digit);
-            }
-            if let Some(pos) = l.rfind(digit.to_string().as_str()) {
-                digit_pos.insert(pos, digit);
-            }
-            if let Some(pos) = l.find(digit_str) {
-                digit_pos.insert(pos, digit);
-            }
-            if let Some(pos) = l.rfind(digit_str) {
-                digit_pos.insert(pos, digit);
-            }
-        }
-        let first = digit_pos.values().next().unwrap_or(&0);
-        let last = digit_pos.values().last().unwrap_or(&0);
-
-        acc + first * 10 + last
-    })
-}
 
 fn part2_bigbrain(input: &str) -> usize {
     input
@@ -74,11 +37,49 @@ impl<'a> AdventOfCodeDay<'a> for Day01Solver {
     type Part2Output = usize;
 
     fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
-        part1(input)
+        input.lines().fold(0, |acc, l| {
+            let digits: Vec<_> = l.chars().filter(|c| c.is_ascii_digit()).collect();
+            let first = *digits.first().unwrap() as usize - 0x30;
+            let last = *digits.last().unwrap() as usize - 0x30;
+
+            acc + first * 10 + last
+        })
     }
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
-        part2(input)
+        let digits_int = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+        let digits_str = [
+            "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+        ];
+        input.lines().fold(0, |acc, l| {
+            let first = digits_int
+                .iter()
+                .zip(digits_str)
+                .enumerate()
+                .map(|(i, (int, str))| {
+                    (
+                        i,
+                        l.find(int)
+                            .unwrap_or(usize::MAX)
+                            .min(l.find(str).unwrap_or(usize::MAX)),
+                    )
+                })
+                .min_by_key(|(_, pos)| *pos)
+                .unwrap()
+                .0;
+            let last = digits_int
+                .iter()
+                .zip(digits_str)
+                .enumerate()
+                .map(|(i, (int, str))| {
+                    (i, l.rfind(int).unwrap_or(0).max(l.rfind(str).unwrap_or(0)))
+                })
+                .max_by_key(|(_, pos)| *pos)
+                .unwrap()
+                .0;
+
+            acc + first * 10 + last
+        })
     }
 
     fn parse_input(input: &'a str) -> Self::ParsedInput {
@@ -98,7 +99,10 @@ mod test {
             a1b2c3d4e5f
             treb7uchet
         ";
-        assert_eq!(part1(input.trim()), 142);
+        assert_eq!(
+            Day01Solver::solve_part2(&Day01Solver::parse_input(input.trim())),
+            142
+        );
     }
 
     #[test]
@@ -112,7 +116,9 @@ mod test {
             zoneight234
             7pqrstsixteen
         ";
-        assert_eq!(part2(input.trim()), 281);
-        assert_eq!(part2_bigbrain(input.trim()), 281);
+        assert_eq!(
+            Day01Solver::solve_part2(&Day01Solver::parse_input(input.trim())),
+            281
+        );
     }
 }
