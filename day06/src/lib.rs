@@ -38,12 +38,12 @@ impl<'a> AdventOfCodeDay<'a> for Day06Solver {
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
         let race = &input.1;
-        let b = race.time as f32;
-        let c = -(race.record as f32);
-        let tmp = (b.powf(2f32) + 4f32 * c).sqrt();
+        let b = race.time as f64;
+        let c = -(race.record as f64);
+        let tmp = (b.powf(2f64) + 4f64 * c).sqrt();
         let x0 = (b - tmp) * 0.5;
         let x1 = (b + tmp) * 0.5;
-        ((x1.ceil() - 1f32) - x0.floor()) as usize
+        ((x1.ceil() - 1f64) - x0.floor()) as usize
     }
 
     fn parse_input(input: &'a str) -> Self::ParsedInput {
