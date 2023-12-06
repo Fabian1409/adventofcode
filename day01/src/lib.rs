@@ -27,19 +27,26 @@ impl<'a> AdventOfCodeDay<'a> for Day01Solver {
                 .filter_map(|(i, c)| {
                     if c.is_ascii_digit() {
                         Some(c as usize - 0x30)
+                    } else if l[i..].starts_with("one") {
+                        Some(1)
+                    } else if l[i..].starts_with("two") {
+                        Some(2)
+                    } else if l[i..].starts_with("three") {
+                        Some(3)
+                    } else if l[i..].starts_with("four") {
+                        Some(4)
+                    } else if l[i..].starts_with("five") {
+                        Some(5)
+                    } else if l[i..].starts_with("six") {
+                        Some(6)
+                    } else if l[i..].starts_with("seven") {
+                        Some(7)
+                    } else if l[i..].starts_with("eight") {
+                        Some(8)
+                    } else if l[i..].starts_with("nine") {
+                        Some(9)
                     } else {
-                        match &l[i..] {
-                            "one" => Some(1),
-                            "two" => Some(2),
-                            "three" => Some(3),
-                            "four" => Some(4),
-                            "five" => Some(5),
-                            "six" => Some(6),
-                            "seven" => Some(7),
-                            "eight" => Some(8),
-                            "nine" => Some(9),
-                            _ => None,
-                        }
+                        None
                     }
                 })
                 .collect();
