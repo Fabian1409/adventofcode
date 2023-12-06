@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::collections::HashMap;
 
 use aoc_traits::AdventOfCodeDay;
@@ -35,78 +33,68 @@ fn parse_part(line: &[char], index: usize) -> Part {
     Part { number, start, end }
 }
 
-fn part1(input: &str) -> usize {
-    let schematics: Vec<Vec<char>> = input.lines().map(|l| l.trim().chars().collect()).collect();
-    let mut parts = HashMap::new();
-
-    for (i, line) in schematics.iter().enumerate() {
-        for (j, c) in line.iter().enumerate() {
-            if (*c != '.') & !c.is_ascii_digit() {
-                for i_off in 0..=2 {
-                    for j_off in 0..=2 {
-                        let x = (i + i_off).saturating_sub(1).min(schematics.len() - 1);
-                        let y = (j + j_off).saturating_sub(1).min(line.len() - 1);
-                        let c = schematics[x][y];
-                        if c.is_ascii_digit() {
-                            let part = parse_part(&schematics[x], y);
-                            parts.insert((part.start..part.end, x), part.number);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    parts.values().sum()
-}
-
-fn part2(input: &str) -> usize {
-    let schematics: Vec<Vec<char>> = input.lines().map(|l| l.trim().chars().collect()).collect();
-    let mut sum = 0;
-
-    for (i, line) in schematics.iter().enumerate() {
-        for (j, c) in line.iter().enumerate() {
-            if *c == '*' {
-                let mut gears = HashMap::new();
-                for i_off in 0..=2 {
-                    for j_off in 0..=2 {
-                        let x = (i + i_off).saturating_sub(1).min(schematics.len() - 1);
-                        let y = (j + j_off).saturating_sub(1).min(schematics[0].len() - 1);
-                        let c = schematics[x][y];
-                        if c.is_ascii_digit() {
-                            let part = parse_part(&schematics[x], y);
-                            gears.insert((part.start..part.end, x), part.number);
-                        }
-                    }
-                }
-
-                if gears.len() == 2 {
-                    sum += gears.values().product::<usize>();
-                }
-            }
-        }
-    }
-    sum
-}
-
 pub struct Day03Solver;
 
 impl<'a> AdventOfCodeDay<'a> for Day03Solver {
-    type ParsedInput = &'a str;
+    type ParsedInput = Vec<Vec<char>>;
 
     type Part1Output = usize;
 
     type Part2Output = usize;
 
     fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
-        part1(input)
+        let mut parts = HashMap::new();
+
+        for (i, line) in input.iter().enumerate() {
+            for (j, c) in line.iter().enumerate() {
+                if (*c != '.') & !c.is_ascii_digit() {
+                    for i_off in 0..=2 {
+                        for j_off in 0..=2 {
+                            let x = (i + i_off).saturating_sub(1).min(input.len() - 1);
+                            let y = (j + j_off).saturating_sub(1).min(line.len() - 1);
+                            let c = input[x][y];
+                            if c.is_ascii_digit() {
+                                let part = parse_part(&input[x], y);
+                                parts.insert((part.start..part.end, x), part.number);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        parts.values().sum()
     }
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
-        part2(input)
+        let mut sum = 0;
+
+        for (i, line) in input.iter().enumerate() {
+            for (j, c) in line.iter().enumerate() {
+                if *c == '*' {
+                    let mut gears = HashMap::new();
+                    for i_off in 0..=2 {
+                        for j_off in 0..=2 {
+                            let x = (i + i_off).saturating_sub(1).min(input.len() - 1);
+                            let y = (j + j_off).saturating_sub(1).min(input[0].len() - 1);
+                            let c = input[x][y];
+                            if c.is_ascii_digit() {
+                                let part = parse_part(&input[x], y);
+                                gears.insert((part.start..part.end, x), part.number);
+                            }
+                        }
+                    }
+
+                    if gears.len() == 2 {
+                        sum += gears.values().product::<usize>();
+                    }
+                }
+            }
+        }
+        sum
     }
 
     fn parse_input(input: &'a str) -> Self::ParsedInput {
-        input
+        input.lines().map(|l| l.trim().chars().collect()).collect()
     }
 }
 
@@ -128,7 +116,10 @@ mod test {
             ...$.*....
             .664.598..
         ";
-        assert_eq!(part1(input.trim()), 4361);
+        assert_eq!(
+            Day03Solver::solve_part1(&Day03Solver::parse_input(input.trim())),
+            4361
+        );
     }
 
     #[test]
@@ -145,6 +136,9 @@ mod test {
             ...$.*....
             .664.598..
         ";
-        assert_eq!(part2(input.trim()), 467835);
+        assert_eq!(
+            Day03Solver::solve_part2(&Day03Solver::parse_input(input.trim())),
+            467835
+        );
     }
 }

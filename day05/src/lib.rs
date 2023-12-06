@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::{
     ops::Range,
     str::FromStr,
@@ -9,9 +7,9 @@ use std::{
 
 use aoc_traits::AdventOfCodeDay;
 
-struct Almanac {
-    seeds: Vec<u64>,
-    mappings: Vec<Vec<(Range<u64>, Range<u64>)>>,
+pub struct Almanac {
+    seeds: Vec<usize>,
+    mappings: Vec<Vec<(Range<usize>, Range<usize>)>>,
 }
 
 impl FromStr for Almanac {
@@ -19,14 +17,14 @@ impl FromStr for Almanac {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (seeds, rest) = s.split_once("\n\n").unwrap();
-        let seeds: Vec<u64> = seeds
+        let seeds: Vec<usize> = seeds
             .strip_prefix("seeds: ")
             .unwrap()
             .split(' ')
             .map(|s| s.parse().unwrap())
             .collect();
 
-        let mappings: Vec<Vec<(Range<u64>, Range<u64>)>> = rest
+        let mappings: Vec<Vec<(Range<usize>, Range<usize>)>> = rest
             .split("\n\n")
             .map(|p| {
                 let (_, lines) = p.split_once(':').unwrap();
@@ -47,7 +45,7 @@ impl FromStr for Almanac {
 }
 
 impl Almanac {
-    fn seed_to_location(&self, seed: u64) -> u64 {
+    fn seed_to_location(&self, seed: usize) -> usize {
         let mut next = seed;
 
         for mapping in self.mappings.iter() {
@@ -61,59 +59,50 @@ impl Almanac {
     }
 }
 
-fn part1(input: &str) -> u64 {
-    let almanac = input.parse::<Almanac>().unwrap();
-    almanac
-        .seeds
-        .iter()
-        .map(|seed| almanac.seed_to_location(*seed))
-        .min()
-        .unwrap()
-}
-
-fn part2(input: &str) -> u64 {
-    let almanac = Arc::new(input.parse::<Almanac>().unwrap());
-
-    thread::scope(|s| {
-        let mut threads = Vec::new();
-        almanac.seeds.chunks(2).for_each(|chunk| {
-            let thread_almanac = Arc::clone(&almanac);
-            let start = chunk[0];
-            let len = chunk[1];
-            threads.push(s.spawn(move || {
-                (start..start + len)
-                    .map(|seed| thread_almanac.seed_to_location(seed))
-                    .min()
-                    .unwrap()
-            }));
-        });
-        threads
-            .into_iter()
-            .map(|t| t.join().unwrap())
-            .min()
-            .unwrap()
-    })
-}
-
 pub struct Day05Solver;
 
 impl<'a> AdventOfCodeDay<'a> for Day05Solver {
-    type ParsedInput = &'a str;
+    type ParsedInput = Almanac;
 
-    type Part1Output = u64;
+    type Part1Output = usize;
 
-    type Part2Output = u64;
+    type Part2Output = usize;
 
     fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
-        part1(input)
+        input
+            .seeds
+            .iter()
+            .map(|seed| input.seed_to_location(*seed))
+            .min()
+            .unwrap()
     }
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
-        part2(input)
+        let almanac = Arc::new(input);
+
+        thread::scope(|s| {
+            let mut threads = Vec::new();
+            almanac.seeds.chunks(2).for_each(|chunk| {
+                let thread_almanac = Arc::clone(&almanac);
+                let start = chunk[0];
+                let len = chunk[1];
+                threads.push(s.spawn(move || {
+                    (start..start + len)
+                        .map(|seed| thread_almanac.seed_to_location(seed))
+                        .min()
+                        .unwrap()
+                }));
+            });
+            threads
+                .into_iter()
+                .map(|t| t.join().unwrap())
+                .min()
+                .unwrap()
+        })
     }
 
     fn parse_input(input: &'a str) -> Self::ParsedInput {
-        input
+        input.parse::<Almanac>().unwrap()
     }
 }
 
@@ -158,7 +147,10 @@ mod test {
             60 56 37
             56 93 4
         ";
-        assert_eq!(part1(input.trim()), 35);
+        assert_eq!(
+            Day05Solver::solve_part1(&Day05Solver::parse_input(input.trim())),
+            35
+        );
     }
 
     #[test]
@@ -198,6 +190,9 @@ mod test {
             60 56 37
             56 93 4
         ";
-        assert_eq!(part2(input.trim()), 46);
+        assert_eq!(
+            Day05Solver::solve_part2(&Day05Solver::parse_input(input.trim())),
+            46
+        );
     }
 }

@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::{
     collections::{HashMap, HashSet},
     str::FromStr,
@@ -32,58 +30,43 @@ impl FromStr for Card {
     }
 }
 
-fn part1(input: &str) -> usize {
-    input
-        .lines()
-        .map(|l| l.trim().parse::<Card>().unwrap())
-        .fold(0, |acc, card| {
-            match card.numbers.intersection(&card.winning).count() {
-                0 => acc,
-                x => acc + (1 << (x - 1)),
-            }
-        })
-}
-
-fn part2(input: &str) -> usize {
-    let mut card_copies: HashMap<usize, usize> = HashMap::new();
-
-    input
-        .lines()
-        .map(|l| l.trim().parse::<Card>().unwrap())
-        .enumerate()
-        .fold(0, |acc, (i, card)| {
-            let n = card.numbers.intersection(&card.winning).count();
-            for j in 0..n {
-                *card_copies.entry(i + j + 1).or_default() += 1;
-            }
-
-            let copies = card_copies.remove(&i).unwrap_or(0);
-            for j in 0..n {
-                *card_copies.entry(i + j + 1).or_default() += copies;
-            }
-            acc + copies + 1
-        })
-}
-
 pub struct Day04Solver;
 
 impl<'a> AdventOfCodeDay<'a> for Day04Solver {
-    type ParsedInput = &'a str;
+    type ParsedInput = Vec<usize>;
 
     type Part1Output = usize;
 
     type Part2Output = usize;
 
     fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
-        part1(input)
+        input.iter().fold(0, |acc, n| match n {
+            0 => acc,
+            x => acc + (1 << (x - 1)),
+        })
     }
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
-        part2(input)
+        let mut card_copies: HashMap<usize, usize> = HashMap::new();
+        input.iter().enumerate().fold(0, |acc, (i, n)| {
+            for j in 0..*n {
+                *card_copies.entry(i + j + 1).or_default() += 1;
+            }
+
+            let copies = card_copies.remove(&i).unwrap_or(0);
+            for j in 0..*n {
+                *card_copies.entry(i + j + 1).or_default() += copies;
+            }
+            acc + copies + 1
+        })
     }
 
     fn parse_input(input: &'a str) -> Self::ParsedInput {
         input
+            .lines()
+            .map(|l| l.trim().parse::<Card>().unwrap())
+            .map(|card| card.numbers.intersection(&card.winning).count())
+            .collect()
     }
 }
 
@@ -101,7 +84,10 @@ mod test {
             Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
             Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
         ";
-        assert_eq!(part1(input.trim()), 13);
+        assert_eq!(
+            Day04Solver::solve_part1(&Day04Solver::parse_input(input.trim())),
+            13
+        );
     }
 
     #[test]
@@ -114,7 +100,9 @@ mod test {
             Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
             Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
         ";
-
-        assert_eq!(part2(input.trim()), 30);
+        assert_eq!(
+            Day04Solver::solve_part2(&Day04Solver::parse_input(input.trim())),
+            30
+        );
     }
 }
