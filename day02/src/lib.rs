@@ -2,6 +2,8 @@
 
 use std::{collections::HashMap, error::Error, str::FromStr};
 
+use aoc_traits::AdventOfCodeDay;
+
 const RED_MAX: usize = 12;
 const GREEN_MAX: usize = 13;
 const BLUE_MAX: usize = 14;
@@ -95,6 +97,28 @@ fn part2(input: &str) -> usize {
         let power: usize = fewest_cubes.values().product();
         acc + power
     })
+}
+
+pub struct Day02Solver;
+
+impl<'a> AdventOfCodeDay<'a> for Day02Solver {
+    type ParsedInput = &'a str;
+
+    type Part1Output = usize;
+
+    type Part2Output = usize;
+
+    fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
+        part1(input)
+    }
+
+    fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
+        part2(input)
+    }
+
+    fn parse_input(input: &'a str) -> Self::ParsedInput {
+        input
+    }
 }
 
 #[cfg(test)]

@@ -7,6 +7,8 @@ use std::{
     thread::{self},
 };
 
+use aoc_traits::AdventOfCodeDay;
+
 struct Almanac {
     seeds: Vec<u64>,
     mappings: Vec<Vec<(Range<u64>, Range<u64>)>>,
@@ -91,6 +93,28 @@ fn part2(input: &str) -> u64 {
             .min()
             .unwrap()
     })
+}
+
+pub struct Day05Solver;
+
+impl<'a> AdventOfCodeDay<'a> for Day05Solver {
+    type ParsedInput = &'a str;
+
+    type Part1Output = u64;
+
+    type Part2Output = u64;
+
+    fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
+        part1(input)
+    }
+
+    fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
+        part2(input)
+    }
+
+    fn parse_input(input: &'a str) -> Self::ParsedInput {
+        input
+    }
 }
 
 #[cfg(test)]

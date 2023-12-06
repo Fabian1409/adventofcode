@@ -2,6 +2,8 @@
 
 use std::collections::BTreeMap;
 
+use aoc_traits::AdventOfCodeDay;
+
 fn part1(input: &str) -> usize {
     input.lines().fold(0, |acc, l| {
         let digits: Vec<_> = l.chars().filter(|c| c.is_ascii_digit()).collect();
@@ -60,6 +62,28 @@ fn part2_bigbrain(input: &str) -> usize {
 
             acc + first * 10 + last
         })
+}
+
+pub struct Day01Solver;
+
+impl<'a> AdventOfCodeDay<'a> for Day01Solver {
+    type ParsedInput = &'a str;
+
+    type Part1Output = usize;
+
+    type Part2Output = usize;
+
+    fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
+        part1(input)
+    }
+
+    fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
+        part2(input)
+    }
+
+    fn parse_input(input: &'a str) -> Self::ParsedInput {
+        input
+    }
 }
 
 #[cfg(test)]

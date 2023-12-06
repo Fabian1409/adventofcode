@@ -5,6 +5,8 @@ use std::{
     str::FromStr,
 };
 
+use aoc_traits::AdventOfCodeDay;
+
 #[derive(Clone, Debug)]
 struct Card {
     numbers: HashSet<usize>,
@@ -61,6 +63,28 @@ fn part2(input: &str) -> usize {
             }
             acc + copies + 1
         })
+}
+
+pub struct Day04Solver;
+
+impl<'a> AdventOfCodeDay<'a> for Day04Solver {
+    type ParsedInput = &'a str;
+
+    type Part1Output = usize;
+
+    type Part2Output = usize;
+
+    fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
+        part1(input)
+    }
+
+    fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
+        part2(input)
+    }
+
+    fn parse_input(input: &'a str) -> Self::ParsedInput {
+        input
+    }
 }
 
 #[cfg(test)]

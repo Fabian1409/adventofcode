@@ -2,6 +2,8 @@
 
 use std::collections::HashMap;
 
+use aoc_traits::AdventOfCodeDay;
+
 struct Part {
     number: usize,
     start: usize,
@@ -84,6 +86,28 @@ fn part2(input: &str) -> usize {
         }
     }
     sum
+}
+
+pub struct Day03Solver;
+
+impl<'a> AdventOfCodeDay<'a> for Day03Solver {
+    type ParsedInput = &'a str;
+
+    type Part1Output = usize;
+
+    type Part2Output = usize;
+
+    fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
+        part1(input)
+    }
+
+    fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
+        part2(input)
+    }
+
+    fn parse_input(input: &'a str) -> Self::ParsedInput {
+        input
+    }
 }
 
 #[cfg(test)]
