@@ -20,39 +20,31 @@ impl<'a> AdventOfCodeDay<'a> for Day01Solver {
     }
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
-        let digits_int = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-        let digits_str = [
-            "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-        ];
         input.lines().fold(0, |acc, l| {
-            let first = digits_int
-                .iter()
-                .zip(digits_str)
+            let digits: Vec<usize> = l
+                .chars()
                 .enumerate()
-                .map(|(i, (int, str))| {
-                    (
-                        i,
-                        l.find(int)
-                            .unwrap_or(usize::MAX)
-                            .min(l.find(str).unwrap_or(usize::MAX)),
-                    )
+                .filter_map(|(i, c)| {
+                    if c.is_ascii_digit() {
+                        Some(c as usize - 0x30)
+                    } else {
+                        match &l[i..] {
+                            "one" => Some(1),
+                            "two" => Some(2),
+                            "three" => Some(3),
+                            "four" => Some(4),
+                            "five" => Some(5),
+                            "six" => Some(6),
+                            "seven" => Some(7),
+                            "eight" => Some(8),
+                            "nine" => Some(9),
+                            _ => None,
+                        }
+                    }
                 })
-                .min_by_key(|(_, pos)| *pos)
-                .unwrap()
-                .0;
-            let last = digits_int
-                .iter()
-                .zip(digits_str)
-                .enumerate()
-                .map(|(i, (int, str))| {
-                    (i, l.rfind(int).unwrap_or(0).max(l.rfind(str).unwrap_or(0)))
-                })
-                .rev()
-                .max_by_key(|(_, pos)| *pos)
-                .unwrap()
-                .0;
+                .collect();
 
-            acc + first * 10 + if last != 0 { last } else { first }
+            acc + digits.first().unwrap() * 10 + digits.last().unwrap()
         })
     }
 
