@@ -67,26 +67,56 @@ impl FromStr for Hand {
     }
 }
 
-impl Hand {
-    fn get_type(&self) -> Type {
-        let mut bits = [(0usize); 13];
-        for card in self.cards.iter() {
-            bits[card.clone() as usize] += 1;
-        }
+fn get_type(cards: &[Card]) -> Type {
+    let mut bits = [0usize; 13];
+    for card in cards.iter() {
+        bits[card.clone() as usize] += 1;
+    }
 
-        let mut cards: Vec<_> = bits.into_iter().filter(|x| *x != 0).collect();
+    let mut cards: Vec<_> = bits.into_iter().filter(|x| *x != 0).collect();
 
-        cards.sort();
+    cards.sort();
 
-        match cards.as_slice() {
-            [5] => Type::FiveOfAKind,
-            [1, 4] => Type::FourOfAKind,
-            [2, 3] => Type::FullHouse,
-            [1, 1, 3] => Type::ThreeOfAKind,
-            [1, 2, 2] => Type::TwoPair,
-            [1, 1, 1, 2] => Type::OnePair,
-            _ => Type::HighCard,
-        }
+    match cards.as_slice() {
+        [5] => Type::FiveOfAKind,
+        [1, 4] => Type::FourOfAKind,
+        [2, 3] => Type::FullHouse,
+        [1, 1, 3] => Type::ThreeOfAKind,
+        [1, 2, 2] => Type::TwoPair,
+        [1, 1, 1, 2] => Type::OnePair,
+        _ => Type::HighCard,
+    }
+}
+
+fn get_type_wildcard(cards: &[Card]) -> Type {
+    if !cards.contains(&Card::J) {
+        get_type(cards)
+    } else {
+        let replacements = [
+            Card::Two,
+            Card::Three,
+            Card::Four,
+            Card::Five,
+            Card::Six,
+            Card::Seven,
+            Card::Eight,
+            Card::Nine,
+            Card::T,
+            Card::Q,
+            Card::K,
+            Card::A,
+        ];
+        replacements
+            .iter()
+            .map(|r| {
+                let updated: Vec<_> = cards
+                    .iter()
+                    .map(|c| if *c == Card::J { r.clone() } else { c.clone() })
+                    .collect();
+                get_type(&updated)
+            })
+            .max()
+            .unwrap()
     }
 }
 
@@ -100,7 +130,10 @@ impl<'a> AdventOfCodeDay<'a> for Day07Solver {
     type Part2Output = usize;
 
     fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
-        let mut types: Vec<_> = input.iter().map(|hand| (hand.get_type(), hand)).collect();
+        let mut types: Vec<_> = input
+            .iter()
+            .map(|hand| (get_type(&hand.cards), hand))
+            .collect();
         types.sort_by(|a, b| match a.0.cmp(&b.0) {
             Ordering::Less => Ordering::Less,
             Ordering::Greater => Ordering::Greater,
@@ -114,7 +147,36 @@ impl<'a> AdventOfCodeDay<'a> for Day07Solver {
     }
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
-        todo!()
+        let mut types: Vec<_> = input
+            .iter()
+            .map(|hand| (get_type_wildcard(&hand.cards), hand))
+            .collect();
+        types.sort_by(|a, b| match a.0.cmp(&b.0) {
+            Ordering::Less => Ordering::Less,
+            Ordering::Greater => Ordering::Greater,
+            Ordering::Equal => {
+                for (a, b) in a.1.cards.iter().zip(&b.1.cards) {
+                    if (*a == Card::J) & (*b == Card::J) {
+                        continue;
+                    } else if *a == Card::J {
+                        return Ordering::Less;
+                    } else if *b == Card::J {
+                        return Ordering::Greater;
+                    } else {
+                        match a.cmp(b) {
+                            Ordering::Equal => continue,
+                            x => return x,
+                        }
+                    }
+                }
+                Ordering::Equal
+            }
+        });
+        types
+            .iter()
+            .enumerate()
+            .map(|(i, (_, hand))| (i + 1) * hand.bid)
+            .sum()
     }
 
     fn parse_input(input: &'a str) -> Self::ParsedInput {
@@ -156,7 +218,7 @@ mod test {
         ";
         assert_eq!(
             Day07Solver::solve_part2(&Day07Solver::parse_input(input)),
-            0
+            5905
         );
     }
 }
