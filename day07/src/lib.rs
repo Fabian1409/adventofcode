@@ -154,9 +154,6 @@ impl<'a> AdventOfCodeDay<'a> for Day07Solver {
                 }
             })
             .collect();
-        for t in types.iter() {
-            println!("{:?}", t.0);
-        }
         types.sort_by(|a, b| match a.0.cmp(&b.0) {
             Ordering::Less => Ordering::Less,
             Ordering::Greater => Ordering::Greater,
