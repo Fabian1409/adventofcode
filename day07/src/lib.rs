@@ -1,8 +1,8 @@
-use std::{cmp::Ordering, str::FromStr};
+use std::{cmp::Ordering, collections::HashMap, str::FromStr};
 
 use aoc_traits::AdventOfCodeDay;
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Card {
     Two,
     Three,
@@ -68,15 +68,12 @@ impl FromStr for Hand {
 }
 
 fn get_type(cards: &[Card]) -> Type {
-    let mut bits = [0usize; 13];
-    for card in cards.iter() {
-        bits[card.clone() as usize] += 1;
+    let mut counts = HashMap::new();
+    for card in cards {
+        *counts.entry(card).or_insert(0) += 1;
     }
-
-    let mut cards: Vec<_> = bits.into_iter().filter(|x| *x != 0).collect();
-
+    let mut cards: Vec<_> = counts.values().collect();
     cards.sort();
-
     match cards.as_slice() {
         [5] => Type::FiveOfAKind,
         [1, 4] => Type::FourOfAKind,
@@ -92,31 +89,28 @@ fn get_type_wildcard(cards: &[Card]) -> Type {
     if !cards.contains(&Card::J) {
         get_type(cards)
     } else {
-        let replacements = [
-            Card::Two,
-            Card::Three,
-            Card::Four,
-            Card::Five,
-            Card::Six,
-            Card::Seven,
-            Card::Eight,
-            Card::Nine,
-            Card::T,
-            Card::Q,
-            Card::K,
-            Card::A,
-        ];
-        replacements
+        let mut counts = HashMap::new();
+        for card in cards {
+            if *card != Card::J {
+                *counts.entry(card).or_insert(0) += 1;
+            }
+        }
+        let replacement = *counts
             .iter()
-            .map(|r| {
-                let updated: Vec<_> = cards
-                    .iter()
-                    .map(|c| if *c == Card::J { r.clone() } else { c.clone() })
-                    .collect();
-                get_type(&updated)
+            .max_by_key(|(_, n)| *n)
+            .unwrap_or((&&Card::A, &0))
+            .0;
+        let updated: Vec<_> = cards
+            .iter()
+            .map(|c| {
+                if *c == Card::J {
+                    replacement.clone()
+                } else {
+                    c.clone()
+                }
             })
-            .max()
-            .unwrap()
+            .collect();
+        get_type(&updated)
     }
 }
 
