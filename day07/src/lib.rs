@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::HashMap, str::FromStr};
+use std::{cmp::Ordering, str::FromStr};
 
 use aoc_traits::AdventOfCodeDay;
 
@@ -68,13 +68,15 @@ impl FromStr for Hand {
 }
 
 fn get_type(cards: &[Card]) -> Type {
-    let mut counts = HashMap::new();
+    let mut counts = [0usize; 13];
     for card in cards {
-        *counts.entry(card).or_insert(0) += 1;
+        counts[card.clone() as usize] += 1;
     }
-    let mut cards: Vec<_> = counts.values().collect();
-    cards.sort();
-    match cards.as_slice() {
+
+    let mut counts: Vec<_> = counts.into_iter().filter(|x| *x != 0).collect();
+    counts.sort();
+
+    match counts.as_slice() {
         [5] => Type::FiveOfAKind,
         [1, 4] => Type::FourOfAKind,
         [2, 3] => Type::FullHouse,
@@ -85,32 +87,31 @@ fn get_type(cards: &[Card]) -> Type {
     }
 }
 
-fn get_type_wildcard(cards: &[Card]) -> Type {
-    if !cards.contains(&Card::J) {
-        get_type(cards)
-    } else {
-        let mut counts = HashMap::new();
-        for card in cards {
-            if *card != Card::J {
-                *counts.entry(card).or_insert(0) += 1;
-            }
-        }
-        let replacement = *counts
-            .iter()
-            .max_by_key(|(_, n)| *n)
-            .unwrap_or((&&Card::A, &0))
-            .0;
-        let updated: Vec<_> = cards
-            .iter()
-            .map(|c| {
-                if *c == Card::J {
-                    replacement.clone()
-                } else {
-                    c.clone()
-                }
-            })
-            .collect();
-        get_type(&updated)
+fn get_new_type(hand_type: Type, num_normal: usize) -> Type {
+    match (hand_type, num_normal) {
+        (Type::HighCard, 1) => Type::FiveOfAKind,
+        (Type::HighCard, 2) => Type::FourOfAKind,
+        (Type::HighCard, 3) => Type::ThreeOfAKind,
+        (Type::HighCard, 4) => Type::OnePair,
+        (Type::OnePair, 1) => Type::FourOfAKind,
+        (Type::OnePair, 2) => Type::ThreeOfAKind,
+        (Type::OnePair, 3) => Type::ThreeOfAKind,
+        (Type::OnePair, 4) => Type::ThreeOfAKind,
+        (Type::TwoPair, 1) => Type::FullHouse,
+        (Type::TwoPair, 2) => Type::FourOfAKind,
+        (Type::TwoPair, 3) => Type::FourOfAKind,
+        (Type::TwoPair, 4) => Type::FullHouse,
+        (Type::ThreeOfAKind, 1) => Type::FourOfAKind,
+        (Type::ThreeOfAKind, 2) => Type::FourOfAKind,
+        (Type::ThreeOfAKind, 3) => Type::FiveOfAKind,
+        (Type::ThreeOfAKind, 4) => Type::FourOfAKind,
+        (Type::FullHouse, 2) => Type::FiveOfAKind,
+        (Type::FullHouse, 3) => Type::FiveOfAKind,
+        (Type::FourOfAKind, 1) => Type::FiveOfAKind,
+        (Type::FourOfAKind, 4) => Type::FiveOfAKind,
+        (Type::FiveOfAKind, 0) => Type::FiveOfAKind,
+        (Type::FiveOfAKind, 5) => Type::FiveOfAKind,
+        _ => panic!(),
     }
 }
 
@@ -143,7 +144,20 @@ impl<'a> AdventOfCodeDay<'a> for Day07Solver {
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
         let mut types: Vec<_> = input
             .iter()
-            .map(|hand| (get_type_wildcard(&hand.cards), hand))
+            .map(|hand| {
+                let hand_type = get_type(&hand.cards);
+                if hand.cards.contains(&Card::J) {
+                    let mut counts = [0usize; 13];
+                    for card in hand.cards.iter() {
+                        counts[card.clone() as usize] += 1;
+                    }
+                    let num_wildcard = counts[Card::J as usize];
+                    let new_type = get_new_type(hand_type, 5 - num_wildcard);
+                    (new_type, hand)
+                } else {
+                    (hand_type, hand)
+                }
+            })
             .collect();
         types.sort_by(|a, b| match a.0.cmp(&b.0) {
             Ordering::Less => Ordering::Less,
