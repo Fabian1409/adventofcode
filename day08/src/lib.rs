@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, mem::swap};
 
 use aoc_traits::AdventOfCodeDay;
 
@@ -12,6 +12,28 @@ struct Node {
 pub struct Input {
     dirs: Vec<char>,
     graph: HashMap<String, Node>,
+}
+
+fn lcm(first: usize, second: usize) -> usize {
+    first * second / gcd(first, second)
+}
+
+fn gcd(first: usize, second: usize) -> usize {
+    let mut max = first;
+    let mut min = second;
+    if min > max {
+        swap(&mut max, &mut min);
+    }
+
+    loop {
+        let res = max % min;
+        if res == 0 {
+            return min;
+        }
+
+        max = min;
+        min = res;
+    }
 }
 
 pub struct Day08Solver;
@@ -40,7 +62,28 @@ impl<'a> AdventOfCodeDay<'a> for Day08Solver {
     }
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
-        todo!()
+        let mut nums = Vec::new();
+        let mut curs: Vec<_> = input
+            .graph
+            .values()
+            .cloned()
+            .filter(|node| node.label.ends_with('A'))
+            .collect();
+        for cur in curs.iter_mut() {
+            let mut num = 0;
+            let mut dir_idx = 0;
+            while !cur.label.ends_with('Z') {
+                let dir = input.dirs[dir_idx];
+                *cur = match dir {
+                    'L' => input.graph.get(&cur.left).unwrap().clone(),
+                    _ => input.graph.get(&cur.right).unwrap().clone(),
+                };
+                dir_idx = (dir_idx + 1) % input.dirs.len();
+                num += 1;
+            }
+            nums.push(num)
+        }
+        nums.into_iter().reduce(lcm).unwrap()
     }
 
     fn parse_input(input: &'a str) -> Self::ParsedInput {
