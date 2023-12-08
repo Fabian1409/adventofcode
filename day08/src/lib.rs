@@ -62,28 +62,27 @@ impl<'a> AdventOfCodeDay<'a> for Day08Solver {
     }
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
-        let mut nums = Vec::new();
-        let mut curs: Vec<_> = input
+        input
             .graph
             .values()
-            .cloned()
             .filter(|node| node.label.ends_with('A'))
-            .collect();
-        for cur in curs.iter_mut() {
-            let mut num = 0;
-            let mut dir_idx = 0;
-            while !cur.label.ends_with('Z') {
-                let dir = input.dirs[dir_idx];
-                *cur = match dir {
-                    'L' => input.graph.get(&cur.left).unwrap().clone(),
-                    _ => input.graph.get(&cur.right).unwrap().clone(),
-                };
-                dir_idx = (dir_idx + 1) % input.dirs.len();
-                num += 1;
-            }
-            nums.push(num)
-        }
-        nums.into_iter().reduce(lcm).unwrap()
+            .cloned()
+            .map(|mut cur| {
+                let mut num = 0;
+                let mut dir_idx = 0;
+                while !cur.label.ends_with('Z') {
+                    let dir = input.dirs[dir_idx];
+                    cur = match dir {
+                        'L' => input.graph.get(&cur.left).unwrap().clone(),
+                        _ => input.graph.get(&cur.right).unwrap().clone(),
+                    };
+                    dir_idx = (dir_idx + 1) % input.dirs.len();
+                    num += 1;
+                }
+                num
+            })
+            .reduce(lcm)
+            .unwrap()
     }
 
     fn parse_input(input: &'a str) -> Self::ParsedInput {
