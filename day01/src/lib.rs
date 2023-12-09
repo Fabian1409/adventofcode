@@ -73,7 +73,7 @@ mod test {
             treb7uchet
         ";
         assert_eq!(
-            Day01Solver::solve_part2(&Day01Solver::parse_input(input.trim())),
+            Day01Solver::solve_part1(&Day01Solver::parse_input(input.trim())),
             142
         );
     }
