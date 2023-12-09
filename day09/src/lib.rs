@@ -11,10 +11,10 @@ fn get_diffs(history: &[i32]) -> Vec<Vec<i32>> {
             .windows(2)
             .map(|w| w[1] - w[0])
             .collect();
-        if diff.iter().all(|x| *x == 0) {
-            break;
-        } else {
+        if diff.iter().any(|x| *x != 0) {
             diffs.push(diff);
+        } else {
+            break;
         }
     }
     diffs
