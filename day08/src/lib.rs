@@ -3,15 +3,15 @@ use std::{collections::HashMap, mem::swap};
 use aoc_traits::AdventOfCodeDay;
 
 #[derive(Debug, Clone)]
-struct Node {
-    label: String,
-    left: String,
-    right: String,
+struct Node<'a> {
+    label: &'a str,
+    left: &'a str,
+    right: &'a str,
 }
 
-pub struct Input {
+pub struct Input<'a> {
     dirs: Vec<char>,
-    graph: HashMap<String, Node>,
+    graph: HashMap<&'a str, Node<'a>>,
 }
 
 fn lcm(first: usize, second: usize) -> usize {
@@ -39,7 +39,7 @@ fn gcd(first: usize, second: usize) -> usize {
 pub struct Day08Solver;
 
 impl<'a> AdventOfCodeDay<'a> for Day08Solver {
-    type ParsedInput = Input;
+    type ParsedInput = Input<'a>;
 
     type Part1Output = usize;
 
@@ -93,14 +93,7 @@ impl<'a> AdventOfCodeDay<'a> for Day08Solver {
             .map(|l| {
                 let (label, children) = l.trim().split_once(" = ").unwrap();
                 let (left, right) = children[1..children.len() - 1].split_once(", ").unwrap();
-                (
-                    label.to_owned(),
-                    Node {
-                        label: label.to_owned(),
-                        left: left.to_owned(),
-                        right: right.to_owned(),
-                    },
-                )
+                (label, Node { label, left, right })
             })
             .collect();
 

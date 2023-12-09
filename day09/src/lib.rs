@@ -2,8 +2,8 @@ use aoc_traits::AdventOfCodeDay;
 
 pub struct Day09Solver;
 
-fn get_diffs(history: Vec<i32>) -> Vec<Vec<i32>> {
-    let mut diffs = vec![history];
+fn get_diffs(history: &[i32]) -> Vec<Vec<i32>> {
+    let mut diffs = vec![history.to_vec()];
     loop {
         let diff: Vec<_> = diffs
             .last()
@@ -31,7 +31,7 @@ impl<'a> AdventOfCodeDay<'a> for Day09Solver {
         input
             .iter()
             .map(|history| {
-                get_diffs(history.clone())
+                get_diffs(history)
                     .iter()
                     .rev()
                     .fold(0, |acc, e| acc + e.last().unwrap())
@@ -43,7 +43,7 @@ impl<'a> AdventOfCodeDay<'a> for Day09Solver {
         input
             .iter()
             .map(|history| {
-                get_diffs(history.clone())
+                get_diffs(history)
                     .iter()
                     .rev()
                     .fold(0, |acc, e| e.first().unwrap() - acc)
