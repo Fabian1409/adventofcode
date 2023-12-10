@@ -69,6 +69,29 @@ fn next_dir(dir: Direction, c: char) -> Option<Direction> {
     }
 }
 
+fn fill_row(data: &mut [Vec<char>], row: usize, col: usize, clockwise: bool) -> usize {
+    let mut num = 0;
+    let width = data[0].len();
+    if !clockwise {
+        for i in (0..col).rev() {
+            if data[row][i] == '*' {
+                break;
+            }
+            data[row][i] = 'I';
+            num += 1;
+        }
+    } else {
+        for i in col..width {
+            if data[row][i] == '*' {
+                break;
+            }
+            data[row][i] = 'I';
+            num += 1;
+        }
+    }
+    num
+}
+
 pub struct Day10Solver;
 
 impl<'a> AdventOfCodeDay<'a> for Day10Solver {
@@ -102,21 +125,69 @@ impl<'a> AdventOfCodeDay<'a> for Day10Solver {
         let mut data = input.clone();
         let mut y = input.iter().position(|row| row.contains(&'S')).unwrap();
         let mut x = input[y].iter().position(|c| *c == 'S').unwrap();
+        let mut loop_pos = Vec::new();
         data[y][x] = '*';
+
         let mut dir = find_start_dir(input, &mut x, &mut y).unwrap();
+        let first_dir = dir.clone();
+
+        let mut num_left_turns = 0;
+        let mut num_right_turns = 0;
 
         while input[y][x] != 'S' {
-            dir = next_dir(dir, input[y][x]).unwrap();
+            loop_pos.push((x, y));
+            let new_dir = next_dir(dir.clone(), input[y][x]).unwrap();
             data[y][x] = '*';
-            match dir {
+            match new_dir {
                 Direction::North => y -= 1,
                 Direction::South => y += 1,
                 Direction::East => x += 1,
                 Direction::West => x -= 1,
             }
+
+            match (dir, new_dir.clone()) {
+                (Direction::North, Direction::East) => num_right_turns += 1,
+                (Direction::North, Direction::West) => num_left_turns += 1,
+                (Direction::South, Direction::East) => num_left_turns += 1,
+                (Direction::South, Direction::West) => num_right_turns += 1,
+                (Direction::East, Direction::North) => num_left_turns += 1,
+                (Direction::East, Direction::South) => num_right_turns += 1,
+                (Direction::West, Direction::North) => num_right_turns += 1,
+                (Direction::West, Direction::South) => num_left_turns += 1,
+                _ => {}
+            }
+
+            dir = new_dir;
         }
 
-        todo!()
+        // for row in data.iter() {
+        //     println!("{row:?}");
+        // }
+
+        // println!("{loop_pos:?}");
+
+        let mut num = 0;
+        let clockwise = num_right_turns < num_left_turns;
+
+        let mut dir = first_dir;
+        for (x, y) in loop_pos {
+            match dir {
+                Direction::North => num += fill_row(&mut data, y, x, !clockwise),
+                Direction::South => num += fill_row(&mut data, y, x, clockwise),
+                _ => match next_dir(dir.clone(), input[y][x]).unwrap() {
+                    Direction::North => num += fill_row(&mut data, y, x, !clockwise),
+                    Direction::South => num += fill_row(&mut data, y, x, clockwise),
+                    _ => {}
+                },
+            }
+            dir = next_dir(dir, input[y][x]).unwrap();
+        }
+
+        // for row in data.iter() {
+        //     println!("{row:?}");
+        // }
+
+        num
     }
 
     fn parse_input(input: &'a str) -> Self::ParsedInput {
