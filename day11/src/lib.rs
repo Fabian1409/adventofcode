@@ -1,23 +1,10 @@
 use aoc_traits::AdventOfCodeDay;
 
-fn transpose(v: Vec<Vec<char>>) -> Vec<Vec<char>> {
-    let len = v[0].len();
-    let mut iters: Vec<_> = v.into_iter().map(|n| n.into_iter()).collect();
-    (0..len)
-        .map(|_| {
-            iters
-                .iter_mut()
-                .map(|n| n.next().unwrap())
-                .collect::<Vec<char>>()
-        })
-        .collect()
-}
-
 fn distance(a: (usize, usize), b: (usize, usize)) -> usize {
     a.0.abs_diff(b.0) + a.1.abs_diff(b.1)
 }
 
-fn solve(input: &[Vec<char>], expansion_rate: usize) -> usize {
+fn solve(input: &[Vec<char>], r: usize) -> usize {
     let galaxies: Vec<_> = input
         .iter()
         .enumerate()
@@ -29,19 +16,20 @@ fn solve(input: &[Vec<char>], expansion_rate: usize) -> usize {
         })
         .collect();
 
-    let mut y_expansions = vec![1usize; input.len()];
-    for (i, row) in input.iter().enumerate() {
-        if row.iter().all(|c| *c == '.') {
-            y_expansions[i] = expansion_rate;
-        }
-    }
+    let y_expansions: Vec<_> = input
+        .iter()
+        .map(|row| if row.iter().all(|c| *c == '.') { r } else { 1 })
+        .collect();
 
-    let mut x_expansions = vec![1usize; input[0].len()];
-    for i in 0..input[0].len() {
-        if (0..input.len()).map(|j| input[j][i]).all(|c| c == '.') {
-            x_expansions[i] = expansion_rate;
-        }
-    }
+    let x_expansions: Vec<_> = (0..input[0].len())
+        .map(|i| {
+            if (0..input.len()).map(|j| input[j][i]).all(|c| c == '.') {
+                r
+            } else {
+                1
+            }
+        })
+        .collect();
 
     galaxies
         .iter()
