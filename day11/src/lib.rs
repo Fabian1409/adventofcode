@@ -16,20 +16,19 @@ fn solve(input: &[Vec<char>], r: usize) -> usize {
         })
         .collect();
 
-    let y_expansions: Vec<_> = input
-        .iter()
-        .map(|row| if row.iter().all(|c| *c == '.') { r } else { 1 })
-        .collect();
+    let mut y_expansions = vec![1usize; input.len()];
+    for (i, row) in input.iter().enumerate() {
+        if row.iter().all(|c| *c == '.') {
+            y_expansions[i] = r;
+        }
+    }
 
-    let x_expansions: Vec<_> = (0..input[0].len())
-        .map(|i| {
-            if (0..input.len()).map(|j| input[j][i]).all(|c| c == '.') {
-                r
-            } else {
-                1
-            }
-        })
-        .collect();
+    let mut x_expansions = vec![1usize; input[0].len()];
+    for (i, x_expansion) in x_expansions.iter_mut().enumerate() {
+        if (0..input.len()).map(|j| input[j][i]).all(|c| c == '.') {
+            *x_expansion = r;
+        }
+    }
 
     galaxies
         .iter()
