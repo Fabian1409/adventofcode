@@ -36,10 +36,9 @@ fn solve(input: &[Vec<char>], expansion_rate: usize) -> usize {
         }
     }
 
-    let transposed = transpose(input.to_vec());
     let mut x_expansions = vec![1usize; input[0].len()];
-    for (i, row) in transposed.iter().enumerate() {
-        if row.iter().all(|c| *c == '.') {
+    for i in 0..input[0].len() {
+        if (0..input.len()).map(|j| input[j][i]).all(|c| c == '.') {
             x_expansions[i] = expansion_rate;
         }
     }
