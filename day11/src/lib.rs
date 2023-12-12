@@ -18,15 +18,15 @@ fn solve(input: &[Vec<char>], r: usize) -> usize {
 
     let y_expansions: Vec<_> = input
         .iter()
-        .map(|row| if row.iter().all(|c| *c == '.') { r } else { 1 })
+        .map(|row| if row.iter().any(|c| *c != '.') { 1 } else { r })
         .collect();
 
     let x_expansions: Vec<_> = (0..input[0].len())
         .map(|i| {
-            if (0..input.len()).map(|j| input[j][i]).all(|c| c == '.') {
-                r
-            } else {
+            if (0..input.len()).map(|j| input[j][i]).any(|c| c != '.') {
                 1
+            } else {
+                r
             }
         })
         .collect();
