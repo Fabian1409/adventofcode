@@ -29,26 +29,33 @@ fn valid(springs: &[char], groups: &[usize]) -> bool {
     (lens.len() == groups.len()) & groups.iter().zip(lens.iter()).all(|(a, b)| a == b)
 }
 
-fn generate_permutations(n: usize) -> Vec<String> {
+fn generate_permutations(n: usize, m: usize) -> Vec<String> {
     let mut result = Vec::new();
     let mut current_permutation = String::with_capacity(n);
 
-    fn generate_recursive(n: usize, current_permutation: &mut String, result: &mut Vec<String>) {
+    fn generate_recursive(
+        n: usize,
+        m: usize,
+        current_permutation: &mut String,
+        result: &mut Vec<String>,
+    ) {
         if current_permutation.len() == n {
-            result.push(current_permutation.clone());
+            if current_permutation.chars().filter(|&c| c == '#').count() == m {
+                result.push(current_permutation.clone());
+            }
             return;
         }
 
         current_permutation.push('.');
-        generate_recursive(n, current_permutation, result);
+        generate_recursive(n, m, current_permutation, result);
         current_permutation.pop();
 
         current_permutation.push('#');
-        generate_recursive(n, current_permutation, result);
+        generate_recursive(n, m, current_permutation, result);
         current_permutation.pop();
     }
 
-    generate_recursive(n, &mut current_permutation, &mut result);
+    generate_recursive(n, m, &mut current_permutation, &mut result);
     result
 }
 
@@ -70,7 +77,9 @@ impl<'a> AdventOfCodeDay<'a> for Day12Solver {
                 .enumerate()
                 .filter_map(|(i, c)| if *c == '?' { Some(i) } else { None })
                 .collect();
-            let perms = generate_permutations(unknown.len());
+            let is = line.springs.iter().filter(|c| **c == '#').count();
+            let should: usize = line.groups.iter().sum();
+            let perms = generate_permutations(unknown.len(), should - is);
 
             for perm in perms {
                 let mut replaced = line.springs.clone();
@@ -129,7 +138,7 @@ mod test {
         ";
         assert_eq!(
             Day12Solver::solve_part2(&Day12Solver::parse_input(input.trim())),
-            0
+            525152
         );
     }
 }
