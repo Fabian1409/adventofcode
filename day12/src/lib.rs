@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{collections::HashMap, str::FromStr};
 
 use aoc_traits::AdventOfCodeDay;
 
@@ -6,6 +6,22 @@ use aoc_traits::AdventOfCodeDay;
 pub struct Line {
     springs: Vec<char>,
     groups: Vec<usize>,
+}
+
+impl Line {
+    fn unfold(&self) -> Self {
+        let mut springs = Vec::new();
+        let mut groups = Vec::new();
+        for _ in 0..4 {
+            springs.extend_from_slice(&self.springs);
+            springs.push('?');
+            groups.extend_from_slice(&self.groups);
+        }
+        springs.extend_from_slice(&self.springs);
+        groups.extend_from_slice(&self.groups);
+
+        Line { springs, groups }
+    }
 }
 
 impl FromStr for Line {
@@ -19,44 +35,73 @@ impl FromStr for Line {
     }
 }
 
-fn valid(springs: &[char], groups: &[usize]) -> bool {
-    let springs: String = springs.iter().collect();
-    let lens: Vec<_> = springs
-        .split('.')
-        .map(|x| x.len())
-        .filter(|x| *x != 0)
-        .collect();
-    (lens.len() == groups.len()) & groups.iter().zip(lens.iter()).all(|(a, b)| a == b)
+fn arrangements(springs: &[char], groups: &[usize]) -> usize {
+    let mut cache = HashMap::new();
+    dfs(&mut cache, springs, groups, 0, 0, 0)
 }
 
-fn generate_permutations(n: usize, m: usize) -> Vec<String> {
-    let mut result = Vec::new();
-    let mut current_permutation = String::with_capacity(n);
-
-    fn generate_recursive(
-        n: usize,
-        m: usize,
-        current_permutation: &mut String,
-        result: &mut Vec<String>,
-    ) {
-        if current_permutation.len() == n {
-            if current_permutation.chars().filter(|&c| c == '#').count() == m {
-                result.push(current_permutation.clone());
-            }
-            return;
+fn dfs(
+    cache: &mut HashMap<(usize, usize, usize), usize>,
+    springs: &[char],
+    groups: &[usize],
+    from: usize,
+    group: usize,
+    size: usize,
+) -> usize {
+    if from >= springs.len() {
+        if group >= groups.len() {
+            return 1;
         }
 
-        current_permutation.push('.');
-        generate_recursive(n, m, current_permutation, result);
-        current_permutation.pop();
+        if group == groups.len() - 1 && groups[group] == size {
+            return 1;
+        }
 
-        current_permutation.push('#');
-        generate_recursive(n, m, current_permutation, result);
-        current_permutation.pop();
+        return 0;
     }
 
-    generate_recursive(n, m, &mut current_permutation, &mut result);
-    result
+    match springs[from] {
+        '.' => {
+            if size == 0 {
+                return dfs(cache, springs, groups, from + 1, group, size);
+            }
+
+            if group >= groups.len() || size != groups[group] {
+                return 0;
+            }
+
+            dfs(cache, springs, groups, from + 1, group + 1, 0)
+        }
+        '#' => {
+            if group >= groups.len() || size + 1 > groups[group] {
+                return 0;
+            }
+
+            dfs(cache, springs, groups, from + 1, group, size + 1)
+        }
+        _ => {
+            if let Some(answer) = cache.get(&(from, group, size)).copied() {
+                return answer;
+            }
+
+            let mut ways = 0;
+
+            if size == 0 {
+                ways += dfs(cache, springs, groups, from + 1, group, size);
+            }
+
+            if group < groups.len() && size < groups[group] {
+                ways += dfs(cache, springs, groups, from + 1, group, size + 1);
+            }
+
+            if group < groups.len() && size == groups[group] {
+                ways += dfs(cache, springs, groups, from + 1, group + 1, 0);
+            }
+
+            cache.insert((from, group, size), ways);
+            ways
+        }
+    }
 }
 
 pub struct Day12Solver;
@@ -69,33 +114,18 @@ impl<'a> AdventOfCodeDay<'a> for Day12Solver {
     type Part2Output = usize;
 
     fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
-        let mut sum = 0;
-        for line in input {
-            let unknown: Vec<usize> = line
-                .springs
-                .iter()
-                .enumerate()
-                .filter_map(|(i, c)| if *c == '?' { Some(i) } else { None })
-                .collect();
-            let is = line.springs.iter().filter(|c| **c == '#').count();
-            let should: usize = line.groups.iter().sum();
-            let perms = generate_permutations(unknown.len(), should - is);
-
-            for perm in perms {
-                let mut replaced = line.springs.clone();
-                for (c, i) in perm.chars().zip(unknown.iter()) {
-                    replaced[*i] = c;
-                }
-                if valid(&replaced, &line.groups) {
-                    sum += 1;
-                }
-            }
-        }
-        sum
+        input
+            .iter()
+            .map(|l| arrangements(&l.springs, &l.groups))
+            .sum()
     }
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
-        todo!()
+        input
+            .iter()
+            .map(|l| l.unfold())
+            .map(|l| arrangements(&l.springs, &l.groups))
+            .sum()
     }
 
     fn parse_input(input: &'a str) -> Self::ParsedInput {
