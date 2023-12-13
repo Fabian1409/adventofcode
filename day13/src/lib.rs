@@ -10,13 +10,28 @@ fn check_reflection(pattern: &[String], center: (usize, usize)) -> bool {
 }
 
 #[derive(Debug, Clone)]
+enum Reflection {
+    Horizontal,
+    Vertical,
+}
+
+impl Reflection {
+    fn multiplier(&self) -> usize {
+        match self {
+            Reflection::Horizontal => 100,
+            Reflection::Vertical => 1,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Pattern {
     horizontal: Vec<String>,
     vertical: Vec<String>,
 }
 
 impl Pattern {
-    fn find_reflection(&self) -> usize {
+    fn reflection(&self, old: Option<&(usize, Reflection)>) -> Option<(usize, Reflection)> {
         let h_pairs: Vec<_> = self
             .horizontal
             .windows(2)
@@ -25,8 +40,13 @@ impl Pattern {
             .collect();
 
         for pair in h_pairs.iter() {
+            if let Some(old) = old {
+                if (old.0 == pair.1) & matches!(old.1, Reflection::Horizontal) {
+                    continue;
+                }
+            }
             if check_reflection(&self.horizontal, *pair) {
-                return pair.1 * 100;
+                return Some((pair.1, Reflection::Horizontal));
             }
         }
 
@@ -38,8 +58,37 @@ impl Pattern {
             .collect();
 
         for pair in v_pairs.iter() {
+            if let Some(old) = old {
+                if (old.0 == pair.1) & matches!(old.1, Reflection::Vertical) {
+                    continue;
+                }
+            }
             if check_reflection(&self.vertical, *pair) {
-                return pair.1;
+                return Some((pair.1, Reflection::Vertical));
+            }
+        }
+
+        None
+    }
+
+    fn fix_smudge_reflection(&self) -> usize {
+        let reflection = self.reflection(None).unwrap();
+        for i in 0..self.horizontal.len() {
+            for j in 0..self.horizontal[0].len() {
+                let mut pattern = self.clone();
+                if pattern.horizontal[i].chars().nth(j).unwrap() == '#' {
+                    pattern.horizontal[i].replace_range(j..j + 1, ".");
+                } else {
+                    pattern.horizontal[i].replace_range(j..j + 1, "#");
+                }
+                if pattern.vertical[j].chars().nth(i).unwrap() == '#' {
+                    pattern.vertical[j].replace_range(i..i + 1, ".");
+                } else {
+                    pattern.vertical[j].replace_range(i..i + 1, "#");
+                }
+                if let Some(other) = pattern.reflection(Some(&reflection)) {
+                    return other.0 * other.1.multiplier();
+                }
             }
         }
 
@@ -57,11 +106,17 @@ impl<'a> AdventOfCodeDay<'a> for Day13Solver {
     type Part2Output = usize;
 
     fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
-        input.iter().map(|p| p.find_reflection()).sum()
+        input
+            .iter()
+            .map(|p| {
+                let reflection = p.reflection(None).unwrap();
+                reflection.0 * reflection.1.multiplier()
+            })
+            .sum()
     }
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
-        todo!()
+        input.iter().map(|p| p.fix_smudge_reflection()).sum()
     }
 
     fn parse_input(input: &'a str) -> Self::ParsedInput {
