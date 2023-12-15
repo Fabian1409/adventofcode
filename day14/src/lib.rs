@@ -2,6 +2,11 @@ use std::collections::HashMap;
 
 use aoc_traits::AdventOfCodeDay;
 
+enum Direction {
+    Left,
+    Right,
+}
+
 fn transpose(v: Vec<Vec<char>>) -> Vec<Vec<char>> {
     let len = v[0].len();
     let mut iters: Vec<_> = v.into_iter().map(|n| n.into_iter()).collect();
@@ -27,66 +32,38 @@ fn calc_load(input: Vec<Vec<char>>) -> usize {
         .sum()
 }
 
-fn shift_left(input: Vec<Vec<char>>) -> Vec<Vec<char>> {
+fn shift(input: Vec<Vec<char>>, dir: Direction) -> Vec<Vec<char>> {
     input
         .into_iter()
         .map(|row| {
-            let mut round_nums = vec![(0, 0)];
+            let mut shifted: Vec<_> = row
+                .iter()
+                .collect::<String>()
+                .split('#')
+                .flat_map(|g| {
+                    let mut chars: Vec<_> = g.chars().collect();
+                    chars.sort_by(|a, b| match dir {
+                        Direction::Left => b.cmp(a),
+                        Direction::Right => a.cmp(b),
+                    });
+                    chars
+                })
+                .collect();
             for (i, c) in row.iter().enumerate() {
-                match c {
-                    'O' => round_nums.last_mut().unwrap().1 += 1,
-                    '#' => round_nums.push((i + 1, 0)),
-                    _ => {}
+                if *c == '#' {
+                    shifted.insert(i, '#');
                 }
             }
-            let n = row.len();
-            let mut row = vec!['.'; n];
-            for (pos, num) in round_nums {
-                if pos != 0 {
-                    row[pos - 1] = '#';
-                }
-
-                for c in row.iter_mut().skip(pos).take(num) {
-                    *c = 'O';
-                }
-            }
-            row
-        })
-        .collect()
-}
-
-fn shift_right(input: Vec<Vec<char>>) -> Vec<Vec<char>> {
-    input
-        .into_iter()
-        .map(|row| {
-            let mut round = vec![(0, 0)];
-            for (i, c) in row.iter().rev().enumerate() {
-                match c {
-                    'O' => round.last_mut().unwrap().1 += 1,
-                    '#' => round.push((i + 1, 0)),
-                    _ => {}
-                }
-            }
-            let n = row.len();
-            let mut row = vec!['.'; n];
-            for (pos, num) in round {
-                if pos != 0 {
-                    row[n - pos] = '#';
-                }
-                for c in row.iter_mut().take(n - pos).skip(n - pos - num) {
-                    *c = 'O';
-                }
-            }
-            row
+            shifted
         })
         .collect()
 }
 
 fn cycle(input: Vec<Vec<char>>) -> Vec<Vec<char>> {
-    let north = shift_left(transpose(input));
-    let west = shift_left(transpose(north));
-    let south = shift_right(transpose(west));
-    shift_right(transpose(south))
+    let north = shift(transpose(input), Direction::Left);
+    let west = shift(transpose(north), Direction::Left);
+    let south = shift(transpose(west), Direction::Right);
+    shift(transpose(south), Direction::Right)
 }
 
 pub struct Day14Solver;
@@ -99,7 +76,7 @@ impl<'a> AdventOfCodeDay<'a> for Day14Solver {
     type Part2Output = usize;
 
     fn solve_part1(input: &Self::ParsedInput) -> Self::Part1Output {
-        calc_load(shift_left(transpose(input.to_vec())))
+        calc_load(shift(transpose(input.to_vec()), Direction::Left))
     }
 
     fn solve_part2(input: &Self::ParsedInput) -> Self::Part2Output {
